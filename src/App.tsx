@@ -14,47 +14,66 @@ import { QuestionPage } from "./pages/QuestionPage";
 import { ThemeToggle } from "./components/ThemeToggle";
 import "./App.css";
 
-type Theme = "light" | "dark";
+type AppliedTheme = "light" | "dark";
+type ThemeMode = "system" | AppliedTheme;
 
-function getSystemTheme(): Theme {
+function getSystemTheme(): AppliedTheme {
   return window.matchMedia("(prefers-color-scheme: dark)").matches
     ? "dark"
     : "light";
 }
 
-function useTheme(): [Theme, () => void] {
-  const [theme, setTheme] = useState<Theme>(() => {
-    const stored = localStorage.getItem("theme") as Theme | null;
-    return stored ?? getSystemTheme();
-  });
+function getStoredThemeMode(): ThemeMode {
+  const stored = localStorage.getItem("theme");
+  return stored === "light" || stored === "dark" || stored === "system"
+    ? stored
+    : "system";
+}
 
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("theme", theme);
-  }, [theme]);
+function getNextThemeMode(themeMode: ThemeMode): ThemeMode {
+  if (themeMode === "system") {
+    return "light";
+  }
 
-  // Sync with system preference changes (when no manual override was made)
+  if (themeMode === "light") {
+    return "dark";
+  }
+
+  return "system";
+}
+
+function useTheme(): [ThemeMode, AppliedTheme, () => void] {
+  const [themeMode, setThemeMode] = useState<ThemeMode>(() => getStoredThemeMode());
+  const [systemTheme, setSystemTheme] = useState<AppliedTheme>(() => getSystemTheme());
+  const appliedTheme = themeMode === "system" ? systemTheme : themeMode;
+
   useEffect(() => {
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     const handler = (e: MediaQueryListEvent) => {
-      if (!localStorage.getItem("theme")) {
-        setTheme(e.matches ? "dark" : "light");
-      }
+      setSystemTheme(e.matches ? "dark" : "light");
     };
+
+    setSystemTheme(mq.matches ? "dark" : "light");
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
   }, []);
 
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === "light" ? "dark" : "light"));
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", appliedTheme);
+    document.documentElement.setAttribute("data-theme-mode", themeMode);
+    localStorage.setItem("theme", themeMode);
+  }, [appliedTheme, themeMode]);
+
+  const cycleTheme = () => {
+    setThemeMode((prev) => getNextThemeMode(prev));
   };
 
-  return [theme, toggleTheme];
+  return [themeMode, appliedTheme, cycleTheme];
 }
 
 function AppShell() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [theme, toggleTheme] = useTheme();
+  const [themeMode, appliedTheme, cycleTheme] = useTheme();
   const location = useLocation();
 
   useEffect(() => {
@@ -86,7 +105,11 @@ function AppShell() {
           <span>
             {categories.length} categories &middot; {totalQuestions} questions
           </span>
-          <ThemeToggle theme={theme} onToggle={toggleTheme} />
+          <ThemeToggle
+            themeMode={themeMode}
+            appliedTheme={appliedTheme}
+            onToggle={cycleTheme}
+          />
         </div>
       </aside>
 

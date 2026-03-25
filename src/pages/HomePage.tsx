@@ -36,6 +36,28 @@ export function HomePage() {
             <span className="stat-label">Advanced</span>
           </div>
         </div>
+        <div className="hero-actions">
+          <a
+            href="https://github.com/anubhav100rao"
+            target="_blank"
+            rel="noreferrer"
+            className="hero-cta hero-cta-primary"
+          >
+            <span className="hero-cta-eyebrow">Builder</span>
+            <span className="hero-cta-title">Follow Me</span>
+            <span className="hero-cta-meta">@anubhav100rao on GitHub</span>
+          </a>
+          <a
+            href="https://github.com/anubhav100rao/operating_systems"
+            target="_blank"
+            rel="noreferrer"
+            className="hero-cta hero-cta-secondary"
+          >
+            <span className="hero-cta-eyebrow">Open Source</span>
+            <span className="hero-cta-title">Interested in Contributing?</span>
+            <span className="hero-cta-meta">Explore the repo and jump in</span>
+          </a>
+        </div>
         <div className="search-wrapper">
           <input
             type="text"
