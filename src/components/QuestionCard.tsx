@@ -16,6 +16,7 @@ const difficultyColor: Record<string, string> = {
 
 export function QuestionCard({ question, categoryId, categoryColor, index }: Props) {
   const hasAnswer = Boolean(question.content || question.solutionPath);
+  const displayNumber = question.problemNumber ?? index + 1;
 
   return (
     <Link
@@ -31,7 +32,7 @@ export function QuestionCard({ question, categoryId, categoryColor, index }: Pro
       }
     >
       <div className="question-card-left">
-        <span className="question-number">{index + 1}</span>
+        <span className="question-number">{displayNumber}</span>
       </div>
       <div className="question-card-body">
         <div className="question-header">
@@ -46,9 +47,9 @@ export function QuestionCard({ question, categoryId, categoryColor, index }: Pro
               {question.difficulty}
             </span>
           )}
-        <span className={`status ${hasAnswer ? "answered" : "unanswered"}`}>
-          {hasAnswer ? "Answered" : "Pending"}
-        </span>
+          <span className={`status ${hasAnswer ? "answered" : "unanswered"}`}>
+            {hasAnswer ? "Answered" : "Pending"}
+          </span>
         </div>
         <h3>{question.title}</h3>
         {question.tags && question.tags.length > 0 && (

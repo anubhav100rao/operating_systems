@@ -11,10 +11,50 @@ import { categories, totalQuestions } from "./data/categories";
 import { HomePage } from "./pages/HomePage";
 import { CategoryPage } from "./pages/CategoryPage";
 import { QuestionPage } from "./pages/QuestionPage";
+import { ThemeToggle } from "./components/ThemeToggle";
 import "./App.css";
+
+type Theme = "light" | "dark";
+
+function getSystemTheme(): Theme {
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
+}
+
+function useTheme(): [Theme, () => void] {
+  const [theme, setTheme] = useState<Theme>(() => {
+    const stored = localStorage.getItem("theme") as Theme | null;
+    return stored ?? getSystemTheme();
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
+  // Sync with system preference changes (when no manual override was made)
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const handler = (e: MediaQueryListEvent) => {
+      if (!localStorage.getItem("theme")) {
+        setTheme(e.matches ? "dark" : "light");
+      }
+    };
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === "light" ? "dark" : "light"));
+  };
+
+  return [theme, toggleTheme];
+}
 
 function AppShell() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [theme, toggleTheme] = useTheme();
   const location = useLocation();
 
   useEffect(() => {
@@ -46,6 +86,7 @@ function AppShell() {
           <span>
             {categories.length} categories &middot; {totalQuestions} questions
           </span>
+          <ThemeToggle theme={theme} onToggle={toggleTheme} />
         </div>
       </aside>
 
